@@ -58,6 +58,7 @@ let index = 0;
 
 const select = document.getElementById("songSelect");
 
+// laad songs
 db.ref("songs").on("value", snap => {
   const songs = snap.val() || {};
   select.innerHTML = "";
