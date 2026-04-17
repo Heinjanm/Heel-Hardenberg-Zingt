@@ -1,32 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body {
-  font-family: Arial;
-  text-align: center;
-  padding: 20px;
-}
-button {
-  font-size: 20px;
-  padding: 15px 25px;
-  margin: 10px;
-}
-.current {
-  margin-top: 20px;
-  font-size: 18px;
-}
-</style>
-</head>
 <body>
 
 <h2>🎛️ Control</h2>
 
-<button onclick="prev()">⬅️ Prev</button>
-<button onclick="next()">Next ➡️</button>
+<select id="songSelect"></select>
+<button onclick="loadSong()">🎵 Start Lied</button>
 
-<div class="current" id="current"></div>
+<br><br>
+
+<button onclick="prev()">⬅️</button>
+<button onclick="next()">➡️</button>
+
+<div id="current"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -35,40 +21,4 @@ button {
 const firebaseConfig = {
   apiKey: "AIzaSyD-fBAqPUqDe22lmbJXyPEVix-LgMYrBT0",
   authDomain: "lyrics-a63b8.firebaseapp.com",
-  databaseURL: "https://lyrics-a63b8-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "lyrics-a63b8"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let lyrics = [];
-let index = 0;
-
-db.ref("lyrics").on("value", snap => {
-  lyrics = snap.val() || [];
-});
-
-db.ref("index").on("value", snap => {
-  index = snap.val() || 0;
-  if (lyrics[index]) {
-    document.getElementById("current").innerText =
-      lyrics[index].line1 + " / " + lyrics[index].line2;
-  }
-});
-
-function next() {
-  if (index < lyrics.length - 1) {
-    db.ref("index").set(index + 1);
-  }
-}
-
-function prev() {
-  if (index > 0) {
-    db.ref("index").set(index - 1);
-  }
-}
-</script>
-
-</body>
-</html>
+  databaseURL: "https
