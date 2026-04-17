@@ -2,16 +2,20 @@
 <html>
 <body>
 
-<h2>🎤 Lyrics Editor</h2>
+<h2>🎤 Editor</h2>
 
 <select id="songSelect"></select>
+<button onclick="loadSong()">📂 Laden</button>
+<button onclick="newSong()">➕ Nieuw Lied</button>
+
 <br><br>
 
-<textarea id="input" style="width:100%; height:200px;"></textarea>
-<br>
+<textarea id="input" style="width:100%; height:250px;"></textarea>
+
+<br><br>
+
 <button onclick="save()">💾 Opslaan</button>
-<button onclick="load()">📂 Laden</button>
-<button onclick="start()">🚀 Start Lied</button>
+<button onclick="deleteSong()">🗑️ Verwijderen</button>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -29,6 +33,7 @@ const db = firebase.database();
 
 const select = document.getElementById("songSelect");
 
+// laad lijst
 db.ref("songs").on("value", snap => {
   const songs = snap.val() || {};
   select.innerHTML = "";
@@ -40,7 +45,7 @@ db.ref("songs").on("value", snap => {
   });
 });
 
-function parseLyrics(raw) {
+function parse(raw) {
   return raw.trim().split("\n").map(line => {
     const [line1, line2] = line.split("|");
     return {
@@ -50,15 +55,7 @@ function parseLyrics(raw) {
   });
 }
 
-function save() {
-  const name = prompt("Naam lied?");
-  const raw = document.getElementById("input").value;
-  const lyrics = parseLyrics(raw);
-
-  db.ref("songs/" + name).set(lyrics);
-}
-
-function load() {
+function loadSong() {
   const name = select.value;
   db.ref("songs/" + name).once("value", snap => {
     const lyrics = snap.val() || [];
@@ -67,12 +64,22 @@ function load() {
   });
 }
 
-function start() {
+function newSong() {
+  const name = prompt("Naam nieuw lied:");
+  if (!name) return;
+  db.ref("songs/" + name).set([]);
+}
+
+function save() {
   const name = select.value;
-  db.ref("songs/" + name).once("value", snap => {
-    db.ref("lyrics").set(snap.val());
-    db.ref("index").set(0);
-  });
+  const raw = document.getElementById("input").value;
+  const lyrics = parse(raw);
+  db.ref("songs/" + name).set(lyrics);
+}
+
+function deleteSong() {
+  const name = select.value;
+  db.ref("songs/" + name).remove();
 }
 </script>
 
