@@ -5,7 +5,7 @@
 <h2>🎛️ Control</h2>
 
 <select id="songSelect"></select>
-<button onclick="loadSong()">🎵 Start Lied</button>
+<button onclick="startSong()">🎵 Start Lied</button>
 
 <br><br>
 
@@ -21,4 +21,66 @@
 const firebaseConfig = {
   apiKey: "AIzaSyD-fBAqPUqDe22lmbJXyPEVix-LgMYrBT0",
   authDomain: "lyrics-a63b8.firebaseapp.com",
-  databaseURL: "https
+  databaseURL: "https://lyrics-a63b8-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lyrics-a63b8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let lyrics = [];
+let index = 0;
+
+const select = document.getElementById("songSelect");
+
+// laad songs lijst
+db.ref("songs").on("value", snap => {
+  const songs = snap.val() || {};
+  select.innerHTML = "";
+  Object.keys(songs).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    select.appendChild(opt);
+  });
+});
+
+// start gekozen lied
+function startSong() {
+  const name = select.value;
+  db.ref("songs/" + name).once("value", snap => {
+    const data = snap.val();
+    db.ref("lyrics").set(data);
+    db.ref("index").set(0);
+    db.ref("currentSong").set(name);
+  });
+}
+
+// luister naar actieve lyrics
+db.ref("lyrics").on("value", snap => {
+  lyrics = snap.val() || [];
+});
+
+db.ref("index").on("value", snap => {
+  index = snap.val() || 0;
+  if (lyrics[index]) {
+    document.getElementById("current").innerText =
+      lyrics[index].line1 + " / " + lyrics[index].line2;
+  }
+});
+
+function next() {
+  if (index < lyrics.length - 1) {
+    db.ref("index").set(index + 1);
+  }
+}
+
+function prev() {
+  if (index > 0) {
+    db.ref("index").set(index - 1);
+  }
+}
+</script>
+
+</body>
+</html>
