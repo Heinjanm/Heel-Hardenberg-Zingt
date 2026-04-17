@@ -1,34 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body { font-family: Arial; padding: 20px; }
-textarea {
-  width: 100%;
-  height: 300px;
-  font-size: 16px;
-}
-button {
-  padding: 15px;
-  font-size: 18px;
-  margin-top: 10px;
-}
-</style>
-</head>
 <body>
 
 <h2>🎤 Lyrics Editor</h2>
 
-<p>Gebruik formaat:</p>
-<pre>
-LINE | Vertaling
-LINE | Vertaling
-</pre>
+<select id="songSelect"></select>
+<br><br>
 
-<textarea id="input"></textarea>
+<textarea id="input" style="width:100%; height:200px;"></textarea>
 <br>
-<button onclick="save()">🚀 Start Show</button>
+<button onclick="save()">💾 Opslaan</button>
+<button onclick="load()">📂 Laden</button>
+<button onclick="start()">🚀 Start Lied</button>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -44,21 +27,52 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-function save() {
-  const raw = document.getElementById("input").value;
+const select = document.getElementById("songSelect");
 
-  const lyrics = raw.trim().split("\n").map(line => {
+db.ref("songs").on("value", snap => {
+  const songs = snap.val() || {};
+  select.innerHTML = "";
+  Object.keys(songs).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    select.appendChild(opt);
+  });
+});
+
+function parseLyrics(raw) {
+  return raw.trim().split("\n").map(line => {
     const [line1, line2] = line.split("|");
     return {
       line1: line1.trim(),
       line2: line2 ? line2.trim() : ""
     };
   });
+}
 
-  db.ref("lyrics").set(lyrics);
-  db.ref("index").set(0);
+function save() {
+  const name = prompt("Naam lied?");
+  const raw = document.getElementById("input").value;
+  const lyrics = parseLyrics(raw);
 
-  alert("✅ Show gestart!");
+  db.ref("songs/" + name).set(lyrics);
+}
+
+function load() {
+  const name = select.value;
+  db.ref("songs/" + name).once("value", snap => {
+    const lyrics = snap.val() || [];
+    document.getElementById("input").value =
+      lyrics.map(l => l.line1 + " | " + l.line2).join("\n");
+  });
+}
+
+function start() {
+  const name = select.value;
+  db.ref("songs/" + name).once("value", snap => {
+    db.ref("lyrics").set(snap.val());
+    db.ref("index").set(0);
+  });
 }
 </script>
 
