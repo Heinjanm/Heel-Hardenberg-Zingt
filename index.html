@@ -15,26 +15,21 @@ body {
 }
 .container {
   text-align: center;
-  padding: 20px;
-  max-width: 900px;
+  width: 90%;
 }
-.line1 {
-  font-size: 7vw;
-  font-weight: bold;
-  margin-bottom: 20px;
+.line {
+  font-size: 5vw;
+  margin: 10px 0;
 }
-.line2 {
-  font-size: 4vw;
+.active {
   color: #ffd54f;
+  font-weight: bold;
 }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div id="line1" class="line1"></div>
-  <div id="line2" class="line2"></div>
-</div>
+<div class="container" id="lines"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -50,18 +45,27 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const line1El = document.getElementById("line1");
-const line2El = document.getElementById("line2");
+const container = document.getElementById("lines");
 
-db.ref("index").on("value", snap => {
-  const i = snap.val();
-  db.ref("lyrics/" + i).once("value", snap2 => {
-    const data = snap2.val();
-    if (!data) return;
+db.ref().on("value", snap => {
+  const data = snap.val();
+  if (!data || !data.lyrics) return;
 
-    line1El.innerText = data.line1;
-    line2El.innerText = data.line2;
-  });
+  const lyrics = data.lyrics;
+  const index = data.index || 0;
+
+  container.innerHTML = "";
+
+  for (let i = index - 1; i < index + 3; i++) {
+    if (i >= 0 && lyrics[i]) {
+      const div = document.createElement("div");
+      div.className = "line";
+      if (i === index) div.classList.add("active");
+
+      div.innerText = lyrics[i].line1 + " — " + lyrics[i].line2;
+      container.appendChild(div);
+    }
+  }
 });
 </script>
 
